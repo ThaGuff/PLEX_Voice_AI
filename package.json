@@ -3,16 +3,8 @@
   "version": "1.0.0",
   "description": "ARIA Voice Agent Platform - Full SaaS",
   "private": true,
-  "workspaces": [
-    "backend",
-    "frontend"
-  ],
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
-    "build": "npm run build --workspace=frontend",
-    "start": "npm run start --workspace=backend"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
+    "build": "cd frontend && npm install && npm run build && cd ../backend && npm install",
+    "start": "cd backend && node src/index.js"
   }
 }
