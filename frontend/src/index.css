@@ -1,0 +1,21 @@
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0e0f;--surface:#141618;--surface2:#1c1f22;--surface3:#242829;
+  --border:#2a2e32;--border2:#363b40;
+  --text:#e8eaeb;--text2:#8f9499;--text3:#5a6168;
+  --accent:#f05a1a;--accent2:#ff7a3d;
+  --green:#22c55e;--yellow:#f59e0b;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--teal:#14b8a6;
+  --font-head:'Syne',sans-serif;--font-body:'Instrument Sans',sans-serif;--font-mono:'DM Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px;height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+input,select,textarea{
+  background:var(--surface2);border:1px solid var(--border2);border-radius:6px;
+  padding:8px 11px;color:var(--text);font-family:var(--font-body);font-size:12px;outline:none;
+  transition:border-color .12s;width:100%;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+select{appearance:none}
+button{cursor:pointer;font-family:var(--font-body)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
