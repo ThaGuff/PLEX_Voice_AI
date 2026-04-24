@@ -4,12 +4,9 @@ const { pool } = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
 
 async function requireSuperAdmin(req, res, next) {
-  if (req.user?.role !== 'superadmin') {
-    return res.status(403).json({ error: 'Super admin access required' });
-  }
+  if (req.user?.role !== 'superadmin') return res.status(403).json({ error: 'Super admin access required' });
   next();
 }
-
 router.use(requireAuth, requireSuperAdmin);
 
 router.get('/stats', async (req, res) => {
@@ -20,11 +17,9 @@ router.get('/stats', async (req, res) => {
       pool.query("SELECT COUNT(*), outcome FROM calls WHERE started_at > NOW() - INTERVAL '30 days' GROUP BY outcome"),
       pool.query("SELECT COUNT(*) FROM appointments WHERE created_at > NOW() - INTERVAL '30 days'"),
     ]);
-    const orgsByPlan = {};
-    let totalOrgs = 0;
+    const orgsByPlan = {}; let totalOrgs = 0;
     orgs.rows.forEach(r => { orgsByPlan[r.plan] = parseInt(r.count); totalOrgs += parseInt(r.count); });
-    const callsByOutcome = {};
-    let totalCalls = 0;
+    const callsByOutcome = {}; let totalCalls = 0;
     calls.rows.forEach(r => { callsByOutcome[r.outcome] = parseInt(r.count); totalCalls += parseInt(r.count); });
     res.json({ totalOrgs, orgsByPlan, totalUsers: parseInt(users.rows[0].count), totalCalls, callsByOutcome, totalAppointments: parseInt(appts.rows[0].count) });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -36,9 +31,9 @@ router.get('/orgs', async (req, res) => {
       SELECT o.*, COUNT(DISTINCT u.id) as user_count, COUNT(DISTINCT c.id) as call_count,
         COUNT(DISTINCT a.id) as agent_count, MAX(c.started_at) as last_call_at
       FROM organizations o
-      LEFT JOIN users u ON u.org_id = o.id
-      LEFT JOIN calls c ON c.org_id = o.id
-      LEFT JOIN agents a ON a.org_id = o.id
+      LEFT JOIN users u ON u.org_id=o.id
+      LEFT JOIN calls c ON c.org_id=o.id
+      LEFT JOIN agents a ON a.org_id=o.id
       GROUP BY o.id ORDER BY o.created_at DESC`);
     res.json(rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -80,10 +75,7 @@ router.delete('/orgs/:id', async (req, res) => {
 
 router.get('/users', async (req, res) => {
   try {
-    const { rows } = await pool.query(`
-      SELECT u.*, o.name as org_name, o.plan as org_plan
-      FROM users u JOIN organizations o ON u.org_id=o.id
-      ORDER BY u.created_at DESC`);
+    const { rows } = await pool.query(`SELECT u.*, o.name as org_name, o.plan as org_plan FROM users u JOIN organizations o ON u.org_id=o.id ORDER BY u.created_at DESC`);
     res.json(rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -115,9 +107,7 @@ router.get('/calls', async (req, res) => {
     if (org_id) { params.push(org_id); where = 'WHERE c.org_id=$1'; }
     params.push(parseInt(limit));
     const { rows } = await pool.query(
-      `SELECT c.*, o.name as org_name FROM calls c
-       JOIN organizations o ON o.id=c.org_id
-       ${where} ORDER BY c.started_at DESC LIMIT $${params.length}`,
+      `SELECT c.*, o.name as org_name FROM calls c JOIN organizations o ON o.id=c.org_id ${where} ORDER BY c.started_at DESC LIMIT $${params.length}`,
       params
     );
     res.json(rows);
