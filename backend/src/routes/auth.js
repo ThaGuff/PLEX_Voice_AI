@@ -19,11 +19,7 @@ router.post('/register', async (req,res) => {
     const{rows:[user]}=await client.query("INSERT INTO users(org_id,email,password_hash,name,role) VALUES($1,$2,$3,$4,'owner') RETURNING id,name,email,role,org_id",[org.id,email,hash,name]);
     await client.query('COMMIT');
     res.json({token:sign(user.id,org.id),user:{id:user.id,name:user.name,email:user.email,role:user.role},org});
-  } catch(err) {
-    await client.query('ROLLBACK');
-    console.error('Register error:',err.message);
-    res.status(500).json({error:err.message});
-  } finally {client.release();}
+  } catch(err) { await client.query('ROLLBACK'); res.status(500).json({error:err.message}); } finally {client.release();}
 });
 router.post('/login', async (req,res) => {
   try {
@@ -34,13 +30,11 @@ router.post('/login', async (req,res) => {
     if(!await bcrypt.compare(password,user.password_hash)) return res.status(401).json({error:'Invalid credentials'});
     await pool.query('UPDATE users SET last_login=NOW() WHERE id=$1',[user.id]);
     res.json({token:sign(user.id,user.org_id),user:{id:user.id,name:user.name,email:user.email,role:user.role},org:{id:user.org_id,name:user.org_name,slug:user.slug,plan:user.plan,twilio_phone_number:user.twilio_phone_number}});
-  } catch(err) {console.error('Login error:',err.message);res.status(500).json({error:err.message});}
+  } catch(err){res.status(500).json({error:err.message});}
 });
 router.get('/me', requireAuth, async (req,res) => {
-  try {
-    const{rows:[org]}=await pool.query('SELECT * FROM organizations WHERE id=$1',[req.orgId]);
-    res.json({user:req.user,org});
-  } catch(err){res.status(500).json({error:err.message});}
+  try { const{rows:[org]}=await pool.query('SELECT * FROM organizations WHERE id=$1',[req.orgId]); res.json({user:req.user,org}); }
+  catch(err){res.status(500).json({error:err.message});}
 });
 router.put('/org', requireAuth, async (req,res) => {
   try {
@@ -49,7 +43,7 @@ router.put('/org', requireAuth, async (req,res) => {
     for(const f of allowed){if(req.body[f]!==undefined){vals.push(req.body[f]);sets.push(f+'=$'+vals.length);}}
     if(!sets.length) return res.status(400).json({error:'Nothing to update'});
     vals.push(req.orgId);
-    const{rows:[org]}=await pool.query('UPDATE organizations SET '+sets.join(',')+'updated_at=NOW() WHERE id=$'+vals.length+' RETURNING *',vals);
+    const{rows:[org]}=await pool.query('UPDATE organizations SET '+sets.join(',')+',updated_at=NOW() WHERE id=$'+vals.length+' RETURNING *',vals);
     res.json(org);
   } catch(err){res.status(500).json({error:err.message});}
 });
