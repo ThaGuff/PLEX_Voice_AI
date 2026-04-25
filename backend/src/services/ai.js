@@ -1,46 +1,46 @@
 const OpenAI = require('openai');
 
-let openaiClient = null;
-
-function getOpenAI() {
-  if (!openaiClient) {
-    openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  }
-  return openaiClient;
+function getClient(apiKey) {
+  return new OpenAI({ apiKey: apiKey || process.env.OPENAI_API_KEY });
 }
 
-async function generateAIResponse({ userInput, orgName, faqs, features }) {
+async function generateVoiceResponse({ userInput, orgId, agentId, config, faqs }) {
   const faqContext = faqs.map(f => `Q: ${f.question}\nA: ${f.answer}`).join('\n\n');
 
-  const systemPrompt = `You are ARIA, a professional AI voice receptionist for ${orgName}.
-Your job is to:
-1. Answer common questions using the FAQ knowledge base
-2. Book appointments when callers want to schedule
-3. Transfer calls to a human when needed
-4. Be warm, professional, and concise (you're speaking, not writing)
+  const systemPrompt = `${config.system_prompt || 'You are a professional AI receptionist.'}
 
-ENABLED FEATURES: ${Object.entries(features || {}).filter(([,v])=>v).map(([k])=>k).join(', ')}
+BUSINESS: ${config.name}
+FEATURES: ${[
+  config.booking_enabled && 'appointment booking',
+  config.faq_enabled && 'FAQ answering',
+  config.voicemail_enabled && 'voicemail capture',
+  config.transfer_number && 'call transfer',
+].filter(Boolean).join(', ')}
 
 FAQ KNOWLEDGE BASE:
-${faqContext || 'No FAQs configured yet.'}
+${faqContext || 'No FAQs configured.'}
 
-RESPONSE RULES:
-- Keep responses under 60 words (this is spoken audio)
-- Never mention you're an AI unless directly asked
-- If asked to book, confirm interest then gather name and preferred time
-- If you cannot answer something, offer to transfer or take a message
+ESCALATION KEYWORDS: ${(config.escalation_keywords || []).join(', ')}
 
-Respond with JSON only in this format:
+RULES:
+- Keep responses under 50 words (this is spoken audio)
+- Sound natural and conversational, not robotic
+- If caller wants to book, start collecting their name and preferred time
+- If you hear escalation keywords, set intent to "transfer"
+- If caller says goodbye/thank you/bye, set intent to "goodbye"
+- If you cannot help, offer to take a message (intent: "voicemail")
+
+Respond ONLY with valid JSON:
 {
-  "response": "your spoken response here",
-  "intent": "faq|book_appointment|transfer|voicemail|general",
-  "intentScores": { "booking": 0-100, "faq": 0-100, "transfer": 0-100, "emergency": 0-100 },
-  "extractedData": { "name": null, "date": null, "time": null, "service": null }
+  "response": "your spoken response",
+  "intent": "general|booking|transfer|voicemail|goodbye|faq",
+  "intentScores": {"booking":0,"faq":0,"transfer":0,"emergency":0},
+  "extractedData": {"name":null,"date":null,"time":null,"service":null,"phone":null}
 }`;
 
   try {
-    const openai = getOpenAI();
-    const completion = await openai.chat.completions.create({
+    const client = getClient(config.openai_api_key);
+    const completion = await client.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -48,15 +48,13 @@ Respond with JSON only in this format:
       ],
       response_format: { type: 'json_object' },
       max_tokens: 300,
-      temperature: 0.4,
+      temperature: 0.3,
     });
-
-    const parsed = JSON.parse(completion.choices[0].message.content);
-    return parsed;
+    return JSON.parse(completion.choices[0].message.content);
   } catch (err) {
-    console.error('AI response error:', err);
+    console.error('AI error:', err.message);
     return {
-      response: "I'm sorry, I'm having trouble processing that right now. Would you like me to connect you with our team?",
+      response: "I'm sorry, I'm having some difficulty right now. Would you like me to connect you with a team member?",
       intent: 'transfer',
       intentScores: {},
       extractedData: {}
@@ -64,22 +62,21 @@ Respond with JSON only in this format:
   }
 }
 
-async function generateCallSummary(transcript, orgName) {
+async function generateCallSummary(transcript, orgName, apiKey) {
   try {
-    const openai = getOpenAI();
-    const completion = await openai.chat.completions.create({
+    const client = getClient(apiKey);
+    const completion = await client.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{
         role: 'user',
-        content: `Summarize this call transcript for ${orgName} in 2-3 sentences. Include caller intent, outcome, and any follow-up needed:\n\n${transcript}`
+        content: `Summarize this call for ${orgName} in 2-3 sentences. Include caller intent, outcome, and follow-up needed:\n\n${transcript}`
       }],
       max_tokens: 150,
     });
     return completion.choices[0].message.content;
   } catch (err) {
-    console.error('Summary error:', err);
     return 'Summary unavailable.';
   }
 }
 
-module.exports = { generateAIResponse, generateCallSummary };
+module.exports = { generateVoiceResponse, generateCallSummary };

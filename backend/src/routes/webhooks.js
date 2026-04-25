@@ -1,7 +1,4 @@
 const router = require('express').Router();
-// Generic inbound webhook for Make.com / GHL events
-router.post('/ghl', async (req, res) => {
-  console.log('[Webhook GHL]', req.body);
-  res.json({ received: true });
-});
-module.exports = router;
+router.post('/ghl', (req,res)=>{ console.log('[GHL Webhook]',req.body); res.json({received:true}); });
+router.post('/stripe', (req,res)=>{ console.log('[Stripe Webhook]',req.body); res.json({received:true}); });
+module.exports=router;

@@ -1,6 +1,6 @@
 {
   "name": "aria-frontend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,8 +11,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.21.3",
-    "recharts": "^2.10.3",
-    "date-fns": "^3.3.1"
+    "recharts": "^2.10.3"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",

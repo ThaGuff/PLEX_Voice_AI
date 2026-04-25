@@ -7,8 +7,9 @@ export default defineConfig({
     proxy: {
       '/api': { target: 'http://localhost:3001', changeOrigin: true },
       '/voice': { target: 'http://localhost:3001', changeOrigin: true },
+      '/setup': { target: 'http://localhost:3001', changeOrigin: true },
       '/webhooks': { target: 'http://localhost:3001', changeOrigin: true },
     }
   },
-  build: { outDir: 'dist' }
+  build: { outDir: 'dist', sourcemap: false }
 });

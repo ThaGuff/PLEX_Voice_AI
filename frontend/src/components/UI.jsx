@@ -1,141 +1,254 @@
-// Shared UI primitives used across all pages
+// ── ARIA Platform v2 — Complete UI Component Library ──────────────────────────
 
-export function Card({ children, style }) {
-  return <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:9, overflow:'hidden', marginBottom:12, ...style }}>{children}</div>;
+export function Card({ children, style, onClick }) {
+  return (
+    <div onClick={onClick} style={{
+      background:'var(--surface)', border:'1.5px solid var(--border)',
+      borderRadius:'var(--r-md)', boxShadow:'var(--shadow-sm)',
+      overflow:'hidden', marginBottom:12,
+      cursor: onClick ? 'pointer' : undefined, ...style,
+    }}>
+      {children}
+    </div>
+  );
 }
 
-export function CardHead({ title, meta, children }) {
+export function CardHead({ title, subtitle, children, noBorder }) {
   return (
-    <div style={{ padding:'12px 14px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:8 }}>
-      <div style={{ fontFamily:'var(--font-head)', fontSize:12.5, fontWeight:700, letterSpacing:'-.1px' }}>{title}</div>
-      {meta && <div style={{ marginLeft:'auto', fontSize:10, color:'var(--text3)', fontFamily:'var(--font-mono)' }}>{meta}</div>}
+    <div style={{ padding:'13px 17px', borderBottom: noBorder ? 'none' : '1.5px solid var(--border)', display:'flex', alignItems:'center', gap:10 }}>
+      <div style={{ flex:1 }}>
+        <div style={{ fontFamily:'var(--font-body)', fontSize:13, fontWeight:600, color:'var(--text)', letterSpacing:'-.01em' }}>{title}</div>
+        {subtitle && <div style={{ fontSize:11.5, color:'var(--text-3)', marginTop:1 }}>{subtitle}</div>}
+      </div>
       {children}
     </div>
   );
 }
 
 export function CardBody({ children, style }) {
-  return <div style={{ padding:14, ...style }}>{children}</div>;
+  return <div style={{ padding:'15px 17px', ...style }}>{children}</div>;
 }
 
-export function Badge({ children, color = 'gray' }) {
-  const colors = {
-    green: { bg:'rgba(34,197,94,.1)', color:'var(--green)', border:'rgba(34,197,94,.18)' },
-    yellow: { bg:'rgba(245,158,11,.1)', color:'var(--yellow)', border:'rgba(245,158,11,.18)' },
-    red: { bg:'rgba(239,68,68,.1)', color:'var(--red)', border:'rgba(239,68,68,.18)' },
-    blue: { bg:'rgba(59,130,246,.1)', color:'var(--blue)', border:'rgba(59,130,246,.18)' },
-    purple: { bg:'rgba(168,85,247,.1)', color:'var(--purple)', border:'rgba(168,85,247,.18)' },
-    teal: { bg:'rgba(20,184,166,.1)', color:'var(--teal)', border:'rgba(20,184,166,.18)' },
-    gray: { bg:'var(--surface3)', color:'var(--text3)', border:'var(--border2)' },
-    accent: { bg:'rgba(240,90,26,.1)', color:'var(--accent)', border:'rgba(240,90,26,.18)' },
-  };
-  const c = colors[color] || colors.gray;
+const BS = {
+  green:  ['var(--green-light)','var(--green-text)','rgba(39,103,73,.18)'],
+  amber:  ['var(--amber-light)','var(--amber)','rgba(176,125,44,.2)'],
+  red:    ['var(--red-light)','var(--red)','rgba(184,50,50,.2)'],
+  purple: ['var(--purple-light)','var(--purple)','rgba(74,40,130,.2)'],
+  yellow: ['var(--yellow-light)','var(--yellow)','rgba(158,124,10,.2)'],
+  gray:   ['var(--bg-3)','var(--text-3)','var(--border)'],
+};
+
+export function Badge({ children, color='gray', dot, style }) {
+  const [bg,clr,bdr] = BS[color] || BS.gray;
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:3, padding:'2px 7px', borderRadius:4, fontSize:10, fontFamily:'var(--font-mono)', fontWeight:500, whiteSpace:'nowrap', background:c.bg, color:c.color, border:`1px solid ${c.border}` }}>
+    <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2.5px 8px', borderRadius:'var(--r-full)', fontSize:11, fontWeight:600, background:bg, color:clr, border:`1px solid ${bdr}`, whiteSpace:'nowrap', ...style }}>
+      {dot && <span style={{ width:5, height:5, borderRadius:'50%', background:'currentColor', flexShrink:0 }}/>}
       {children}
     </span>
   );
 }
 
-export function Tag({ children }) {
-  return <span style={{ display:'inline-flex', alignItems:'center', padding:'2px 6px', borderRadius:3, fontSize:10, fontFamily:'var(--font-mono)', background:'var(--surface3)', color:'var(--text2)', border:'1px solid var(--border)' }}>{children}</span>;
+export function Tag({ children, style }) {
+  return <span style={{ display:'inline-flex', alignItems:'center', padding:'2px 7px', borderRadius:'var(--r-xs)', fontSize:11, fontFamily:'var(--font-mono)', background:'var(--bg-2)', color:'var(--text-3)', border:'1px solid var(--border)', ...style }}>{children}</span>;
 }
 
-export function Btn({ children, variant = 'ghost', size = 'md', onClick, style, type = 'button', disabled }) {
-  const base = { display:'inline-flex', alignItems:'center', gap:5, borderRadius:6, fontWeight:600, cursor:'pointer', fontFamily:'var(--font-body)', transition:'.12s', whiteSpace:'nowrap', border:'none' };
-  const variants = {
-    primary: { background:'var(--accent)', color:'#fff' },
-    ghost: { background:'transparent', color:'var(--text2)', border:'1px solid var(--border2)' },
-    danger: { background:'transparent', color:'var(--red)', border:'1px solid rgba(239,68,68,.3)' },
-  };
-  const sizes = {
-    sm: { padding:'4px 9px', fontSize:11 },
-    md: { padding:'6px 13px', fontSize:12 },
-    lg: { padding:'9px 18px', fontSize:13 },
-  };
+const BV = {
+  primary:   ['var(--green)','#fff','var(--green)','var(--green-h)'],
+  secondary: ['var(--surface)','var(--text-2)','var(--border)','var(--bg-2)'],
+  danger:    ['var(--red-xlight)','var(--red)','rgba(184,50,50,.2)','var(--red-light)'],
+  ghost:     ['transparent','var(--text-3)','transparent','var(--bg-2)'],
+  amber:     ['var(--amber)','#fff','var(--amber)','var(--amber-h)'],
+  purple:    ['var(--purple)','#fff','var(--purple)','var(--purple-h)'],
+  outline:   ['transparent','var(--green)','var(--green)','var(--green-xlight)'],
+};
+
+export function Btn({ children, variant='secondary', size='md', onClick, style, disabled, type='button', icon, full }) {
+  const [bg,clr,bdr,hbg] = BV[variant] || BV.secondary;
+  const SZ = { xs:['2px 8px',11,3], sm:['5px 11px',12,4], md:['7px 15px',13,5], lg:['10px 22px',14,6] };
+  const [p,fs,gap] = SZ[size]||SZ.md;
   return (
     <button type={type} onClick={onClick} disabled={disabled}
-      style={{ ...base, ...variants[variant], ...sizes[size], ...(disabled ? { opacity:.5, cursor:'not-allowed' } : {}), ...style }}>
+      onMouseEnter={e=>{ if(!disabled) e.currentTarget.style.background=hbg; }}
+      onMouseLeave={e=>{ e.currentTarget.style.background=bg; }}
+      style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap, padding:p, fontSize:fs, fontWeight:600, fontFamily:'var(--font-body)', lineHeight:1, background:bg, color:clr, border:`1.5px solid ${bdr}`, borderRadius:'var(--r-sm)', cursor: disabled?'not-allowed':'pointer', opacity: disabled?.55:1, transition:'background var(--t)', whiteSpace:'nowrap', width: full?'100%':undefined, ...style }}>
+      {icon && <span style={{ fontSize:fs+1 }}>{icon}</span>}
       {children}
     </button>
   );
 }
 
-export function ProgBar({ value, max = 100, color = 'accent' }) {
-  const pct = Math.min(100, Math.round((value / max) * 100));
+export function Toggle({ on, onChange, label, size='md' }) {
+  const [w,h,d] = size==='sm' ? [30,17,11] : [36,20,14];
   return (
-    <div style={{ background:'var(--surface3)', borderRadius:3, height:4, overflow:'hidden' }}>
-      <div style={{ height:'100%', borderRadius:3, background:`var(--${color})`, width:`${pct}%`, transition:'width .5s' }}/>
-    </div>
+    <label style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}>
+      <div onClick={()=>onChange(!on)} style={{ width:w, height:h, borderRadius:h, background: on?'var(--green)':'var(--border-2)', position:'relative', cursor:'pointer', transition:'background var(--t)', flexShrink:0 }}>
+        <div style={{ position:'absolute', top:(h-d)/2, left: on?w-d-(h-d)/2:(h-d)/2, width:d, height:d, borderRadius:'50%', background:'#fff', transition:'left var(--t)', boxShadow:'0 1px 3px rgba(0,0,0,.15)' }}/>
+      </div>
+      {label && <span style={{ fontSize:13, color:'var(--text-2)', userSelect:'none' }}>{label}</span>}
+    </label>
   );
 }
 
-export function Toggle({ on, onChange }) {
+export function Modal({ title, subtitle, onClose, children, footer, width=520 }) {
   return (
-    <div onClick={() => onChange(!on)} style={{ width:30, height:17, borderRadius:8, background: on ? 'var(--accent)' : 'var(--surface3)', border:`1px solid ${on ? 'var(--accent)' : 'var(--border2)'}`, position:'relative', cursor:'pointer', transition:'.15s', flexShrink:0 }}>
-      <div style={{ position:'absolute', top:2, left: on ? 15 : 2, width:11, height:11, borderRadius:'50%', background:'#fff', transition:'.15s' }}/>
-    </div>
-  );
-}
-
-export function Modal({ title, onClose, children, footer, width = 500 }) {
-  return (
-    <div onClick={(e) => e.target === e.currentTarget && onClose()} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.72)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:999, backdropFilter:'blur(3px)' }}>
-      <div style={{ background:'var(--surface)', border:'1px solid var(--border2)', borderRadius:12, width, maxWidth:'96vw', maxHeight:'85vh', overflowY:'auto' }}>
-        <div style={{ padding:'18px 18px 14px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <div style={{ fontFamily:'var(--font-head)', fontSize:15, fontWeight:700 }}>{title}</div>
-          <button onClick={onClose} style={{ background:'transparent', border:'1px solid var(--border2)', color:'var(--text2)', width:26, height:26, borderRadius:5, cursor:'pointer', fontSize:13, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+    <div onClick={e=>e.target===e.currentTarget&&onClose()} style={{ position:'fixed', inset:0, background:'rgba(28,26,22,.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, backdropFilter:'blur(4px)' }}>
+      <div style={{ background:'var(--surface)', border:'1.5px solid var(--border)', borderRadius:'var(--r-lg)', width, maxWidth:'95vw', maxHeight:'90vh', overflowY:'auto', boxShadow:'var(--shadow-lg)', animation:'fadeIn .18s ease' }}>
+        <div style={{ padding:'18px 20px 14px', borderBottom:'1.5px solid var(--border)', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12 }}>
+          <div>
+            <div style={{ fontFamily:'var(--font-head)', fontSize:16, fontWeight:700, color:'var(--text)' }}>{title}</div>
+            {subtitle && <div style={{ fontSize:12, color:'var(--text-3)', marginTop:3 }}>{subtitle}</div>}
+          </div>
+          <button onClick={onClose} style={{ background:'var(--bg-2)', border:'1.5px solid var(--border)', color:'var(--text-3)', width:28, height:28, borderRadius:'var(--r-sm)', cursor:'pointer', fontSize:13, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>✕</button>
         </div>
-        <div style={{ padding:18 }}>{children}</div>
-        {footer && <div style={{ padding:'12px 18px', borderTop:'1px solid var(--border)', display:'flex', gap:7, justifyContent:'flex-end' }}>{footer}</div>}
+        <div style={{ padding:20 }}>{children}</div>
+        {footer && <div style={{ padding:'12px 20px', borderTop:'1.5px solid var(--border)', display:'flex', gap:7, justifyContent:'flex-end', background:'var(--bg-2)' }}>{footer}</div>}
       </div>
     </div>
   );
 }
 
-export function FormGroup({ label, children }) {
+export function FormGroup({ label, hint, children, required }) {
   return (
-    <div style={{ marginBottom:12 }}>
-      {label && <label style={{ display:'block', fontSize:10, color:'var(--text3)', fontFamily:'var(--font-mono)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>{label}</label>}
+    <div style={{ marginBottom:14 }}>
+      {label && <label style={{ display:'block', fontSize:12, fontWeight:600, color:'var(--text-2)', marginBottom:5 }}>{label}{required&&<span style={{color:'var(--red)',marginLeft:2}}>*</span>}</label>}
       {children}
+      {hint && <div style={{ fontSize:11, color:'var(--text-4)', marginTop:3, lineHeight:1.5 }}>{hint}</div>}
     </div>
   );
 }
 
-export function Spinner() {
-  return <div style={{ width:20, height:20, border:'2px solid var(--border)', borderTopColor:'var(--accent)', borderRadius:'50%', animation:'spin .7s linear infinite' }}/>;
+export function Spinner({ size=20, color='var(--green)' }) {
+  return <div style={{ width:size, height:size, border:`2px solid var(--border)`, borderTopColor:color, borderRadius:'50%', animation:'spin .7s linear infinite', flexShrink:0 }}/>;
 }
 
-export function KPI({ label, value, change, changeDir, color }) {
+export function KPI({ label, value, change, up, icon, color, compact }) {
   return (
-    <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:9, padding:14 }}>
-      <div style={{ fontSize:10, color:'var(--text3)', fontFamily:'var(--font-mono)', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:7 }}>{label}</div>
-      <div style={{ fontFamily:'var(--font-head)', fontSize:24, fontWeight:800, letterSpacing:'-.4px', lineHeight:1, color: color ? `var(--${color})` : 'var(--text)' }}>{value}</div>
-      {change && <div style={{ fontSize:10, marginTop:3, color: changeDir === 'up' ? 'var(--green)' : changeDir === 'down' ? 'var(--red)' : 'var(--text3)' }}>{change}</div>}
+    <div style={{ background:'var(--surface)', border:'1.5px solid var(--border)', borderRadius:'var(--r-md)', padding: compact?'12px 14px':'16px 18px', boxShadow:'var(--shadow-xs)' }}>
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom: compact?6:8 }}>
+        <div style={{ fontSize:11, fontWeight:600, color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'.05em' }}>{label}</div>
+        {icon && <span style={{ fontSize:18, opacity:.5 }}>{icon}</span>}
+      </div>
+      <div style={{ fontFamily:'var(--font-head)', fontSize: compact?22:28, fontWeight:700, letterSpacing:'-.02em', color: color?`var(--${color})`:'var(--text)', lineHeight:1 }}>{value}</div>
+      {change && <div style={{ fontSize:11, marginTop:5, color: up?'var(--green)':up===false?'var(--red)':'var(--text-3)', fontWeight:500 }}>{up===true?'↑':up===false?'↓':''} {change}</div>}
     </div>
   );
 }
 
-export function Table({ cols, rows, onRowClick }) {
+export function ProgBar({ value, max=100, color='green', height=5 }) {
+  const pct = Math.min(100, Math.round((value/Math.max(1,max))*100));
+  return (
+    <div style={{ background:'var(--bg-3)', borderRadius:height, height, overflow:'hidden' }}>
+      <div style={{ height:'100%', borderRadius:height, background:`var(--${color})`, width:`${pct}%`, transition:'width .5s ease' }}/>
+    </div>
+  );
+}
+
+export function DataTable({ cols, rows, onRow, emptyMsg='No data', loading }) {
+  if (loading) return <div style={{ padding:32, textAlign:'center', display:'flex', justifyContent:'center' }}><Spinner/></div>;
   return (
     <table style={{ width:'100%', borderCollapse:'collapse' }}>
-      <thead>
-        <tr>{cols.map(c => <th key={c.key} style={{ fontSize:10, fontFamily:'var(--font-mono)', color:'var(--text3)', textTransform:'uppercase', letterSpacing:'.06em', padding:'7px 11px', borderBottom:'1px solid var(--border)', textAlign:'left', whiteSpace:'nowrap' }}>{c.label}</th>)}</tr>
-      </thead>
+      <thead><tr>{cols.map(c=><th key={c.key} style={{ fontSize:11, fontWeight:600, color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'.05em', padding:'8px 13px', borderBottom:'1.5px solid var(--border)', textAlign:'left', whiteSpace:'nowrap' }}>{c.label}</th>)}</tr></thead>
       <tbody>
-        {rows.map((row, i) => (
-          <tr key={i} onClick={() => onRowClick?.(row)} style={{ cursor: onRowClick ? 'pointer' : 'default' }}
-            onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,.015)'}
-            onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-            {cols.map(c => <td key={c.key} style={{ padding:'9px 11px', borderBottom:'1px solid var(--border)', fontSize:12, verticalAlign:'middle' }}>{c.render ? c.render(row) : row[c.key]}</td>)}
-          </tr>
-        ))}
+        {!rows?.length
+          ? <tr><td colSpan={cols.length} style={{ padding:32, textAlign:'center', color:'var(--text-4)', fontSize:13 }}>{emptyMsg}</td></tr>
+          : rows.map((row,i)=>(
+            <tr key={row.id||i} onClick={()=>onRow?.(row)} style={{ cursor: onRow?'pointer':'default' }}
+              onMouseEnter={e=>{ if(onRow) e.currentTarget.style.background='var(--surface-2)'; }}
+              onMouseLeave={e=>{ e.currentTarget.style.background='transparent'; }}>
+              {cols.map(c=><td key={c.key} style={{ padding:'9px 13px', borderBottom:'1px solid var(--border)', fontSize:12.5, verticalAlign:'middle' }}>{c.render?c.render(row):row[c.key]??'—'}</td>)}
+            </tr>
+          ))
+        }
       </tbody>
     </table>
   );
 }
 
-export const outcomeBadge = (outcome) => {
-  const map = { answered:'green', booked:'teal', voicemail:'yellow', transferred:'blue', missed:'red', 'in-progress':'accent' };
-  return <Badge color={map[outcome] || 'gray'}>{outcome}</Badge>;
-};
+export function Empty({ icon, title, desc, action }) {
+  return (
+    <div style={{ textAlign:'center', padding:'48px 24px' }}>
+      {icon && <div style={{ fontSize:36, marginBottom:12, opacity:.35 }}>{icon}</div>}
+      <div style={{ fontSize:14, fontWeight:600, color:'var(--text-2)', marginBottom:6 }}>{title}</div>
+      {desc && <div style={{ fontSize:12.5, color:'var(--text-3)', maxWidth:320, margin:'0 auto', lineHeight:1.6 }}>{desc}</div>}
+      {action && <div style={{ marginTop:18 }}>{action}</div>}
+    </div>
+  );
+}
+
+export function Alert({ type='info', children, style }) {
+  const T = {
+    info:    ['var(--purple-xlight)','rgba(74,40,130,.15)','var(--purple)','ℹ'],
+    success: ['var(--green-xlight)','rgba(39,103,73,.15)','var(--green)','✓'],
+    warning: ['var(--amber-xlight)','rgba(176,125,44,.15)','var(--amber)','⚠'],
+    error:   ['var(--red-xlight)','rgba(184,50,50,.15)','var(--red)','✕'],
+  };
+  const [bg,bdr,clr,ico] = T[type]||T.info;
+  return (
+    <div style={{ background:bg, border:`1.5px solid ${bdr}`, borderRadius:'var(--r-sm)', padding:'10px 14px', fontSize:12.5, color:clr, display:'flex', gap:8, alignItems:'flex-start', lineHeight:1.55, marginBottom:14, ...style }}>
+      <span style={{ flexShrink:0, marginTop:1 }}>{ico}</span>
+      <span>{children}</span>
+    </div>
+  );
+}
+
+export function Tabs({ tabs, active, onChange, style }) {
+  return (
+    <div style={{ display:'flex', gap:1, borderBottom:'1.5px solid var(--border)', marginBottom:18, ...style }}>
+      {tabs.map(t=>{
+        const key=typeof t==='string'?t:t.key;
+        const label=typeof t==='string'?t:t.label;
+        const ia=active===key;
+        return (
+          <button key={key} onClick={()=>onChange(key)} style={{ padding:'8px 14px', fontSize:13, fontWeight:ia?600:400, color:ia?'var(--green)':'var(--text-3)', background:'transparent', border:'none', borderBottom:`2.5px solid ${ia?'var(--green)':'transparent'}`, marginBottom:-1.5, cursor:'pointer', transition:'color var(--t)', whiteSpace:'nowrap' }}>
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function OutcomeBadge({ outcome }) {
+  const m = { answered:'green', booked:'green', voicemail:'yellow', transferred:'purple', missed:'red', 'in-progress':'amber', failed:'red', confirmed:'green', pending:'yellow', cancelled:'red', completed:'green' };
+  return <Badge color={m[outcome]||'gray'} dot>{outcome||'—'}</Badge>;
+}
+
+export function SectionHead({ title, desc, action }) {
+  return (
+    <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:18 }}>
+      <div>
+        <h1 style={{ fontFamily:'var(--font-head)', fontSize:21, fontWeight:700, letterSpacing:'-.02em', color:'var(--text)', lineHeight:1.2 }}>{title}</h1>
+        {desc && <p style={{ fontSize:13, color:'var(--text-3)', marginTop:4 }}>{desc}</p>}
+      </div>
+      {action && <div style={{ flexShrink:0 }}>{action}</div>}
+    </div>
+  );
+}
+
+export function CopyField({ label, value }) {
+  return (
+    <div style={{ marginBottom:12 }}>
+      {label && <div style={{ fontSize:11.5, fontWeight:600, color:'var(--text-3)', marginBottom:5 }}>{label}</div>}
+      <div style={{ display:'flex', gap:7 }}>
+        <input readOnly value={value||''} style={{ flex:1, fontFamily:'var(--font-mono)', fontSize:11, background:'var(--bg-2)', color:'var(--text-2)' }}/>
+        <Btn size="sm" onClick={()=>navigator.clipboard?.writeText(value)}>Copy</Btn>
+      </div>
+    </div>
+  );
+}
+
+export function IntCard({ icon, name, desc, connected, onConnect, onConfig }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 15px', background:'var(--surface)', border:'1.5px solid var(--border)', borderRadius:'var(--r-md)', marginBottom:8, boxShadow:'var(--shadow-xs)' }}>
+      <div style={{ width:38, height:38, borderRadius:10, background:'var(--bg-2)', border:'1.5px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, flexShrink:0 }}>{icon}</div>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontWeight:600, fontSize:13 }}>{name}</div>
+        <div style={{ fontSize:11.5, color:'var(--text-3)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{desc}</div>
+      </div>
+      <div style={{ display:'flex', alignItems:'center', gap:7, flexShrink:0 }}>
+        <Badge color={connected?'green':'gray'} dot>{connected?'Connected':'Not set'}</Badge>
+        {connected ? <Btn size="sm" onClick={onConfig}>Configure</Btn> : <Btn size="sm" variant="primary" onClick={onConnect}>Connect</Btn>}
+      </div>
+    </div>
+  );
+}
