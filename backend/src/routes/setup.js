@@ -5,16 +5,14 @@ const { pool } = require('../db/pool');
 
 router.post('/superadmin', async (req, res) => {
   const { name, email, password, secret } = req.body;
-  if (secret !== process.env.SETUP_SECRET) {
-    return res.status(403).json({ error: 'Invalid setup secret' });
-  }
+  if (secret !== process.env.SETUP_SECRET) return res.status(403).json({ error: 'Invalid setup secret' });
   const { rows: existing } = await pool.query("SELECT id FROM users WHERE role='superadmin' LIMIT 1");
-  if (existing.length) return res.status(409).json({ error: 'Super admin already exists. Please login.' });
+  if (existing.length) return res.status(409).json({ error: 'Super admin already exists. Please login instead.' });
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const { rows: [org] } = await client.query(
-      `INSERT INTO organizations(name, slug, plan) VALUES('PLEX Automation','plex-automation-admin','agency')
+      `INSERT INTO organizations(name,slug,plan) VALUES('PLEX Automation','plex-automation-admin','agency')
        ON CONFLICT(slug) DO UPDATE SET name='PLEX Automation' RETURNING *`
     );
     const hash = await bcrypt.hash(password, 12);
