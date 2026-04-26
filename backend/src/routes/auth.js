@@ -28,7 +28,7 @@ router.post('/login', async (req,res) => {
     if(!rows.length) return res.status(401).json({error:'Invalid credentials'});
     const user=rows[0];
     if(!await bcrypt.compare(password,user.password_hash)) return res.status(401).json({error:'Invalid credentials'});
-    await pool.query('UPDATE users SET last_login=NOW() WHERE id=$1',[user.id]);
+    try { await pool.query('UPDATE users SET last_login=NOW() WHERE id=$1',[user.id]); } catch(e) {}
     res.json({token:sign(user.id,user.org_id),user:{id:user.id,name:user.name,email:user.email,role:user.role},org:{id:user.org_id,name:user.org_name,slug:user.slug,plan:user.plan,twilio_phone_number:user.twilio_phone_number}});
   } catch(err){res.status(500).json({error:err.message});}
 });
