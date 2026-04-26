@@ -18,7 +18,7 @@ router.post('/register', async (req,res) => {
     const hash=await bcrypt.hash(password,12);
     const{rows:[user]}=await client.query("INSERT INTO users(org_id,email,password_hash,name,role) VALUES($1,$2,$3,$4,'owner') RETURNING id,name,email,role,org_id",[org.id,email,hash,name]);
     await client.query('COMMIT');
-    res.json({token:sign(user.id,org.id),user:{id:user.id,name:user.name,email:user.email,role:user.role},org});
+    res.json({token:sign(user.id,org.id),user:{id:user.id,name:user.name,email:user.email,role:user.role},org:{id:org.id,name:org.name,slug:org.slug,plan:org.plan}});
   } catch(err) { await client.query('ROLLBACK'); res.status(500).json({error:err.message}); } finally {client.release();}
 });
 router.post('/login', async (req,res) => {
