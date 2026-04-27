@@ -5,7 +5,6 @@ const { pool } = require('../db/pool');
 
 router.post('/superadmin', async (req, res) => {
   const { name, email, password, secret } = req.body;
-
   if (!secret || secret !== process.env.SETUP_SECRET)
     return res.status(403).json({ error: 'Invalid setup secret.' });
   if (!name || !email || !password)
@@ -15,17 +14,20 @@ router.post('/superadmin', async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    // Get or create the admin org
+    // Fix the role check constraint to include superadmin
+    await client.query(`
+      ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+      ALTER TABLE users ADD CONSTRAINT users_role_check
+        CHECK (role IN ('superadmin','owner','admin','member'));
+    `);
+
+    // Get or create admin org
     let orgId;
     const { rows: existing } = await client.query(
       "SELECT id FROM organizations WHERE slug='plex-automation-admin' LIMIT 1"
     );
     if (existing.length) {
       orgId = existing[0].id;
-      await client.query(
-        "UPDATE organizations SET plan='agency', name='PLEX Automation', updated_at=NOW() WHERE id=$1",
-        [orgId]
-      );
     } else {
       const { rows: [org] } = await client.query(
         "INSERT INTO organizations(name,slug,plan) VALUES('PLEX Automation','plex-automation-admin','agency') RETURNING id"
@@ -33,8 +35,10 @@ router.post('/superadmin', async (req, res) => {
       orgId = org.id;
     }
 
-    // Delete any existing superadmin so we can recreate cleanly
+    // Remove any existing superadmin
     await client.query("DELETE FROM users WHERE role='superadmin'");
+    // Also remove if email already exists
+    await client.query("DELETE FROM users WHERE email=$1", [email]);
 
     const hash = await bcrypt.hash(password, 12);
     const { rows: [user] } = await client.query(
